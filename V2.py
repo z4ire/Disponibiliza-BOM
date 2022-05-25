@@ -90,11 +90,20 @@ def disponibiliza(ano, numero, responsavel):
                 excel = win32.gencache.EnsureDispatch('Excel.Application')
                 wb = excel.Workbooks.Open(
                     caminho_impacto + lista_atualizada[i])
-
-                if "Montagem" in wb.Sheets(wb.Sheets.Count - 1).Name:
-                    versao = 'V' + str(wb.Sheets.Count - 2)
-                else:
-                    versao = 'V' + str(wb.Sheets.Count - 1)
+                
+                j = 1
+                lista = []
+                while j < wb.Sheets.Count:
+                    versao = wb.Sheets(j).Name
+                    if versao[:1] == 'V':
+                        lista.append(int(versao[1:]))
+                    j = j + 1
+                versao = 'V' + str(max(lista))
+                
+#                 if "Montagem" in wb.Sheets(wb.Sheets.Count - 1).Name:
+#                     versao = 'V' + str(wb.Sheets.Count - 2)
+#                 else:
+#                     versao = 'V' + str(wb.Sheets.Count - 1)
 
                 print(destino_1)
                 print(destino_2)
