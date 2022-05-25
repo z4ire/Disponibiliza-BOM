@@ -1,2 +1,2 @@
-# Hello-Word
+# Disponibiliza BOM
 Primeiro repositório
