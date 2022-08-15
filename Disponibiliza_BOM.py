@@ -14,8 +14,8 @@ import tkinter as tk
 from distutils.cmd import Command
 import shutil
 
-ftp = ftplib.FTP("ftp1.padtec.com.br")
-ftp.login("placas_hardware", "g5hyYd")
+# ftp = ftplib.FTP("ftp1.padtec.com.br")
+# ftp.login("placas_hardware", "g5hyYd")
 
 path_htm = r'\\loki\PADTEC - Campinas\Tecnologia\Hardware\Transferencia_PRO\Web\htm'
 path_xls = r'\\loki\PADTEC - Campinas\Tecnologia\Hardware\Transferencia_PRO\Web\xls'
@@ -84,29 +84,39 @@ def escolhe_ECO(responsavel):
 def teste(ano, numero, responsavel, janela2, eps):
 
     path_analiseimpacto = r'\\loki\PADTEC - Campinas\Tecnologia\Hardware\Transferencia_PRO\ECO\AnaliseImpacto'
-    path_analiseimpacto = path_analiseimpacto + "\ECOs_ " + \
-        ano + '\ECO-' + ano + '-' + '00' + numero + r'\atualizado'
 
     try:
-        folder = os.listdir(path_analiseimpacto)
-
+        if int(numero) > 99:
+            path_analiseimpacto = path_analiseimpacto + "\ECOs_ " + \
+                ano + '\ECO-' + ano + '-' + '0' + numero + r'\atualizado'
+        elif int(numero) < 10:
+            path_analiseimpacto = path_analiseimpacto + "\ECOs_ " + \
+                ano + '\ECO-' + ano + '-' + '000' + numero + r'\atualizado'
+        else:
+            path_analiseimpacto = path_analiseimpacto + "\ECOs_ " + \
+                ano + '\ECO-' + ano + '-' + '00' + numero + r'\atualizado'
     except:
         messagebox.showerror(
-            message="Ano e/ou número da BOM incorretos!: ", title="ERRO")
+            message="Ano e/ou número da BOM incorretos! ", title="ERRO")
     else:
-        disponibiliza(ano, numero, responsavel, janela2, eps)
+
+        try:
+            folder = os.listdir(path_analiseimpacto)
+
+        except:
+            messagebox.showerror(
+                message="Ano e/ou número da BOM incorretos!: ", title="ERRO")
+        else:
+            disponibiliza(ano, numero, responsavel,
+                          janela2, eps, path_analiseimpacto)
 
 
-def disponibiliza(ano, numero, responsavel, janela2, eps):
+def disponibiliza(ano, numero, responsavel, janela2, eps, path_analiseimpacto):
 
     janela2.destroy()
     global path_htm
     global path_xls
     global path_ep
-
-    path_analiseimpacto = r'\\loki\PADTEC - Campinas\Tecnologia\Hardware\Transferencia_PRO\ECO\AnaliseImpacto'
-    path_analiseimpacto = path_analiseimpacto + "\ECOs_ " + \
-        ano + '\ECO-' + ano + '-' + '00' + numero + r'\atualizado'
 
     BOMs = ""
     folder = os.listdir(
@@ -135,9 +145,9 @@ def disponibiliza(ano, numero, responsavel, janela2, eps):
                 arquivo = path_analiseimpacto + "\\" + i
                 wb = excel.Workbooks.Open(arquivo)
 
-                ftp.cwd(r"/Placas/Hardware/BOM/")
-                with open(arquivo, "rb") as file:
-                    ftp.storbinary(f"STOR {i}", file)
+                # ftp.cwd(r"/Placas/Hardware/BOM/")
+                # with open(arquivo, "rb") as file:
+                #     ftp.storbinary(f"STOR {i}", file)
 
                 j = 1
                 lista = []
@@ -152,18 +162,26 @@ def disponibiliza(ano, numero, responsavel, janela2, eps):
                 excel.DisplayAlerts = False
                 ws = wb.Worksheets(versao)
                 Range = ws.Range("A:A")
-                ws.Cells(Range.Find("Status:").Row, Range.Find(
-                    "Status:").Column + 1).Value = "Disponível em Web"
-                ws.Cells(Range.Find("Status:").Row + 1,
-                         Range.Find("Status:").Column + 1).Value = responsavel
+
+                try:
+
+                    ws.Cells(Range.Find("Status:").Row, Range.Find(
+                        "Status:").Column + 1).Value = "Disponível em Web"
+                    ws.Cells(Range.Find("Status:").Row + 1,
+                             Range.Find("Status:").Column + 1).Value = responsavel
+
+                except:
+                    mensagem = "A célula \"Status\" não foi encontrada na última versão da BOM " + BOM
+                    messagebox.showerror(message=mensagem, title="ERRO")
+                    wb.Close()
+                    excel.Application.Quit()
+                    sys.exit(0)
 
                 wb.SaveAs(destino_1, FileFormat=56)  # xls
                 wb.SaveAs(destino_2, FileFormat=56)  # xls
                 wb.SaveAs(destino_3, FileFormat=44)  # htm
-
                 wb.Close()
                 excel.Application.Quit()
-                versao = "nada"
 
         elif eps is True:
 
